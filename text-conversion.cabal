@@ -1,0 +1,35 @@
+cabal-version:      3.0
+name:               text-conversion
+version:            1.0.0
+synopsis:           Proper text conversions and encodings.
+
+-- description:
+homepage:           https://github.com/kozross/text-conversion
+license:            Apache-2.0
+license-file:       LICENSE.md
+author:             Koz Ross
+maintainer:         koz.ross@retro-freedom.nz
+bug-reports:        https://github.com/kozross/text-ascii/issues
+copyright:          (C) Koz Ross 2021
+category:           Text
+tested-with:        GHC ==8.6.5 || ==8.8.4 || ==8.10.3 || ==9.0.1
+build-type:         Simple
+extra-source-files:
+  CHANGELOG.md
+  README.md
+
+library
+  exposed-modules:
+    Text.Conversion
+    Text.Conversion.Unsafe
+
+  build-depends:
+    , base  >=4.12    && <5
+    , text  ^>=1.2.4.1
+
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+
+  hs-source-dirs:   src
+  default-language: Haskell2010

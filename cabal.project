@@ -1,0 +1,4 @@
+packages: ./text-conversion.cabal
+
+package text-conversion
+  ghc-options: -Werror

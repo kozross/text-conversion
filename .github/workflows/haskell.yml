@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+jobs:
+  cabal:
+    name: ${{ matrix.os }} / ghc ${{ matrix.ghc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        cabal: ["latest"]
+        ghc:
+          - "8.6.5"
+          - "8.8.4"
+          - "8.10.4"
+          - "9.0.1"
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout base repo
+    - uses: haskell/actions/setup@v1
+      id: haskell-setup
+      name: Setup Haskell
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
+    - uses: actions/checkout@v2
+      name: Get cabal-extras
+      with:
+        repository: kozross/cabal-extras
+        path: ./cabal-extras
+    - name: Configure main repo
+      run: cabal new-configure --disable-optimization
+    - name: Configure cabal-docspec
+      working-directory: cabal-extras/cabal-docspec
+      run: cabal new-configure -w ghc --disable-optimization
+    - name: Freeze
+      run: |
+        cabal freeze
+        cd ./cabal-extras/cabal-docspec
+        cabal freeze
+    - uses: actions/cache@v2.1.3
+      name: Cache
+      env:
+        V: 0
+      with:
+        path: |
+          ${{ steps.haskell-setup.outputs.cabal-store }}
+          ./cabal-extras/cabal-docspec/dist-newstyle
+        key: ${{ env.V }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze', './cabal-extras/cabal-docspec/cabal.project.freeze') }}
+        restore-keys: |
+          ${{ env.V }}-${{ runner.os }}-${{ matrix.ghc }}-
+          ${{ env.V }}-${{ runner.os }}-
+    - name: Install base dependencies
+      run: cabal new-build --only-dependencies
+    - name: Install cabal-docspec
+      working-directory: cabal-extras/cabal-docspec
+      run: cabal new-install --install-method=copy --installdir=${{ runner.temp }} --overwrite-policy=always
+    - name: Build base repo
+      run: |
+        cabal new-build || { # macOS + TH = QQ
+          cabal clean && cabal new-build
+        }
+    - name: Run doctests
+      run: ${{ runner.temp }}/cabal-docspec --trace-process --timeout 30 --strip-comments --builddir "${{ github.workspace }}/dist-newstyle"
