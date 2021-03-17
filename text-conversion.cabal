@@ -24,8 +24,10 @@ library
     Text.Conversion.Unsafe
 
   build-depends:
-    , base  >=4.12    && <5
-    , text  ^>=1.2.4.1
+    , base        >=4.12     && <5
+    , bytestring  ^>=0.11.1.0
+    , text        ^>=1.2.4.1
+    , text-ascii  ^>=1.0.1
 
   ghc-options:
     -Wall -Wcompat -Wincomplete-record-updates
